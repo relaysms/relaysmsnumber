@@ -61,8 +61,8 @@ The support endpoint validates request fields but does not create or forward a t
 
 ## Launch progress snapshot
 
-- **Repository work present:** Next.js routes and UI, server-side unavailable stubs, preview-only messaging, editable legal placeholders, and documented configuration/checklist. These files are currently untracked and have not been committed.
-- **Verified in Vercel preview:** Nothing. There is no linked Vercel project or deployment URL for this checkout.
+- **Repository work present:** Next.js routes and UI, server-side unavailable stubs, preview-only messaging, editable legal placeholders, and documented configuration/checklist. The initial commit is `b3e419f` on the public GitHub `master` branch.
+- **Verified in Vercel preview:** Nothing yet. The Vercel project and preview deployment have not been created.
 - **Provider accounts/configuration needed:** number/SMS supplier, authentication and database, payment processor, support destination, plus Vercel project access. Keep credentials in secure provider/host settings, not chat or source control.
 - **Business/legal decisions needed:** legal business country and operating countries; company identity/contact; permitted use cases; refund and expiry/non-delivery rules; rental renewal/cancellation terms; SMS content retention; owner/counsel-approved Terms, Privacy, and Acceptable Use.
 
