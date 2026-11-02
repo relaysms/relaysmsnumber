@@ -1,0 +1,5 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { InfoPage, Steps } from '../components/sections';
+export const metadata: Metadata = { title: 'How it works' };
+export default function Page() { return <InfoPage eyebrow="How it works" title="A clear path from choice to inbox." intro="RelayNumber offers a one-time SMS session or a monthly number rental. Options depend on the connected supplier and country."><Steps/><div className="info-callout">In a live service, verified availability and the full price are shown before checkout. This preview has no supplier, account, or payment connection.</div><h2>One-time SMS</h2><p>Choose the country and supported service, review session expiry and applicable policy, then use the number and inbox after supplier confirmation.</p><h2>Monthly rental</h2><p>Review the monthly price, renewal date, included capabilities, and cancellation terms before confirming recurring billing.</p><Link href="/pricing" className="button">Explore options <span>→</span></Link></InfoPage>; }
