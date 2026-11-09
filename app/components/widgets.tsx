@@ -25,7 +25,7 @@ export function CoverageSearch() {
       const data=await response.json();
       if(!response.ok) throw new Error(data.message||'Live coverage is unavailable right now.');
       const term=query.trim().toLocaleLowerCase();
-      const matches=(data.countries as CatalogCountry[]).filter(country=>country.name.toLocaleLowerCase().includes(term)||country.code.toLocaleLowerCase()===term||country.phone_prefix.includes(term));
+      const matches=(data.countries as CatalogCountry[]).filter(country=>country.name.toLocaleLowerCase().includes(term)||country.code.toLocaleLowerCase()===term);
       setCountries(matches);
       if(matches.length===0) setMessage('No matching countries were returned by the live GrizzlySMS catalog.');
       setStatus('ready');
