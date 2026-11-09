@@ -32,7 +32,7 @@ Available scripts:
 
 ## Environment variables
 
-`.env.example` documents every current setting, its purpose, whether it is secret, and where it should be set. Copy it to `.env.local` for local development. For deployment, set values in the hosting provider's encrypted project/environment settings (for example, separate Preview/Staging and Production scopes). Do not commit `.env.local` or paste credentials into source control. No adapter currently reads these placeholders; adding values does not turn on an integration.
+`.env.example` documents each current setting, its purpose, secret status, and where to configure it. Copy it to `.env.local` for development. In Vercel, add server variables under the intended project's **Settings → Environment Variables**, selecting Preview for preview deployments and Production only after launch approval. Do not commit `.env.local` or paste credentials into source control. The server-only GrizzlySMS client powers a read-only catalog when configured; ordering, rentals, and customer webhook handling remain unavailable. Adding a key does not enable those customer features.
 
 | Variables | Belongs to / where to get it | Secret? |
 | --- | --- | --- |
@@ -41,9 +41,9 @@ Available scripts:
 | `AUTH_PROVIDER` | Selected auth adapter name | No |
 | `AUTH_SECRET` | Auth adapter/server session configuration; generate or retrieve from auth provider | **Yes** |
 | `DATABASE_URL` | Connection string from selected database provider | **Yes** |
-| `NUMBER_PROVIDER` | Selected number/SMS supplier adapter name | No |
-| `NUMBER_PROVIDER_API_KEY` | Supplier console API credential | **Yes** |
-| `NUMBER_PROVIDER_WEBHOOK_SECRET` | Supplier signing secret configured for SMS webhook endpoint | **Yes** |
+| `NUMBER_PROVIDER` | GrizzlySMS catalog adapter selection (`grizzlysms`) | No |
+| `GRIZZLY_ALLOWED_COUNTRIES` | Optional server-only comma-separated GrizzlySMS numeric country IDs for emergency restrictions; blank shows every country the provider returns | No |
+| `GRIZZLY_SMS_API_KEY` | GrizzlySMS account API settings; set in local `.env.local` or as a sensitive Vercel Preview variable for the chosen project | **Yes** |
 | `PAYMENT_PROVIDER` | Selected payment processor adapter name | No |
 | `PAYMENT_SECRET_KEY` | Payment processor server API credential | **Yes** |
 | `PAYMENT_WEBHOOK_SECRET` | Payment processor webhook signing secret | **Yes** |
@@ -55,15 +55,18 @@ Secrets must remain server-side. Never prefix a credential with `NEXT_PUBLIC_`. 
 
 ## Current integration state
 
-The application is not ready to accept real customers. It contains the customer-facing routes, responsive layouts, accessible forms, FAQ, catalog search UI, and server-side API boundaries. The site banner says preview mode; catalog, checkout, auth, SMS/payment webhooks, and support return explicit unavailable responses. No number, price, reservation, message, payment, receipt, account, or support ticket is fabricated. Login and sign-up do not collect credentials. The dashboard contains no customer data and is not protected until authentication is implemented. This deployment must not be advertised as a live service.
+The application is not ready to accept real customers. It contains the customer-facing routes, responsive layouts, accessible forms, FAQ, read-only supplier catalog, and server-side API boundaries. The site banner says preview mode; customer ordering, checkout, auth, SMS/payment webhooks, and support remain unavailable. No number, reservation, message, payment, receipt, account, or support ticket is fabricated. Login and sign-up do not collect credentials. The dashboard contains no customer data and is not protected until authentication is implemented. When configured, the public catalog is intended to return every country GrizzlySMS reports; `GRIZZLY_ALLOWED_COUNTRIES` can optionally restrict that list. This deployment must not be advertised as a live service.
+
+GrizzlySMS is the selected number/SMS supplier. The server-side catalog adapter uses the documented `getCountries`, `getServicesList`, and `getPricesV3` actions only; it does not allocate numbers, read activation messages, or access balance-affecting endpoints. `/api/catalog` is read-only and is intended to return all countries GrizzlySMS reports unless `GRIZZLY_ALLOWED_COUNTRIES` is set to a server-side list of provider country IDs. The owner reports `GRIZZLY_SMS_API_KEY` is configured as a sensitive Preview variable in `relaysmsnumber-7hcq`; this checkout's `.vercel/project.json` points to `relaysmsnumber`, so the intended deployment project still needs to be confirmed. No authenticated catalog request or returned data has yet been verified. Specific phone numbers are allocated only during a purchase and are not exposed by a catalog lookup. GrizzlySMS's public documentation describes one-time activation and status APIs but does not document monthly customer rental provisioning, renewals, or cancellations; monthly rentals remain disabled. See [GrizzlySMS API documentation](https://grizzlysms.com/docs) and its [official API client](https://github.com/GrizzlySMS-Git/grizzly-sms-mcp).
 
 The support endpoint validates request fields but does not create or forward a ticket. Provider integration, persistent rate limiting, CSRF/origin controls as applicable, webhook signature verification, idempotency, authorization, data retention, and abuse controls must be implemented before public launch. These require chosen providers, policies, and infrastructure. The current API stubs are not a production security layer.
 
 ## Launch progress snapshot
 
 - **Repository work present:** Next.js routes and UI, server-side unavailable stubs, preview-only messaging, editable legal placeholders, and documented configuration/checklist. The repository is `relaysms/relaysmsnumber`; `codex/vercel-preview` is the intended preview branch and `master` remains the default branch.
-- **Vercel connection:** The `relaysmsnumber` project is connected to this GitHub repository. No deployment has been verified yet; keep this as a preview-only project until its branch and deployment target are confirmed.
-- **Provider accounts/configuration needed:** number/SMS supplier, authentication and database, payment processor, support destination, and secure Vercel environment configuration. Keep credentials in provider/host settings, not chat or source control.
+- **Vercel connection:** The `relaysmsnumber` project is connected to this GitHub repository. The reviewed deployment is `https://relaysmsnumber-8tmzmd44m-relay-8665.vercel.app` (Preview, READY, protected by Vercel Authentication); the homepage was served and the preview/customer-disabled banner was verified.
+- **Deployment caveat:** The first Git-triggered build for `codex/vercel-preview` in the existing project was unexpectedly labeled Production and ended in Error. A later explicit Preview deployment succeeded after setting that project's framework to Next.js. The owner subsequently confirmed a separate Vercel flow that reported a Production deployment for a newly named `relaysmsnumber-7hcq` project was intentional; that separate project's current settings and live status have not been independently verified. Choose one canonical project before configuring production secrets or pushing further changes.
+- **Provider accounts/configuration needed:** GrizzlySMS Preview key is reported configured on `relaysmsnumber-7hcq`; it is not on this checkout's currently linked `relaysmsnumber` project. The live catalog request and returned data remain unverified. GrizzlySMS does not document a monthly rental API or provider webhook for this implementation. The auth/database provider, payment processor, support destination, and production environment configuration remain. Keep credentials in provider/host settings, not chat or source control.
 - **Business/legal decisions needed:** legal business country and operating countries; company identity/contact; permitted use cases; refund and expiry/non-delivery rules; rental renewal/cancellation terms; SMS content retention; owner/counsel-approved Terms, Privacy, and Acceptable Use.
 
 ## Launch readiness gate
@@ -71,7 +74,7 @@ The support endpoint validates request fields but does not create or forward a t
 Do not enable customer acquisition, number assignment, or payment until every item below is verified. Keep the public site in preview mode while any required item is incomplete.
 
 - [ ] **Business and geography:** record the legal business country, business identity/contact, applicable jurisdictions, initial customer countries, and permitted use cases. Do not derive these from device locale.
-- [ ] **Number/SMS supplier:** create the business account, confirm intended countries and use cases are allowed, agree supplier terms, and implement/verify live inventory, price, provisioning, inbound SMS delivery, webhook signature validation, replay protection, and safe failure handling.
+- [ ] **Number/SMS supplier (GrizzlySMS selected):** confirm offered countries/use cases are permitted and agree supplier terms. Add the API key as a sensitive server-side Preview variable on the project actually used for deployment. Verify live country, service, price, and availability data before relying on the catalog. The public catalog defaults to every country GrizzlySMS returns; optionally configure `GRIZZLY_ALLOWED_COUNTRIES` with numeric provider country IDs as a server-side restriction. Keep one-time orders disabled until payment, customer authorization, provisioning, SMS delivery, support, policy, and abuse controls are implemented and verified. Do not enable rentals without a documented and verified rental API.
 - [ ] **Authentication and database:** choose providers, configure verified email, password reset, session security, encrypted connection, retention/deletion, and owner-scoped authorization on every private read/write.
 - [ ] **Payments:** choose a processor eligible for the legal business country and recurring billing. Implement hosted checkout, signed webhook validation, idempotency, subscription state/renewal, cancellation, receipts, and safe reconciliation. Verify test and live modes separately.
 - [ ] **Support:** choose the support destination, implement validation and rate limiting, disclose data handling, and confirm delivery/retention with a real request before launch.
@@ -84,7 +87,7 @@ Do not enable customer acquisition, number assignment, or payment until every it
 
 ## Decisions and access required to continue
 
-The repository does not currently specify the business country or operating countries; supplier; auth/database providers; payment processor; support destination; or approved policies. Provide those decisions and provider sandbox access (or invite credentials through the providers' secure configuration workflow, not chat). Also provide the public business identity/contact details, target domain/hosting choice, permitted use cases, refund and non-delivery policy, rental renewal/cancellation terms, SMS retention limit, and policy approver. We can complete provider-neutral implementation work until then, but cannot honestly mark the service live.
+The repository does not currently specify the legal business country; authentication/database providers; payment processor; support destination; business identity/contact; permitted use cases; or approved policies. The owner reports the GrizzlySMS API key is configured as a sensitive Preview variable on `relaysmsnumber-7hcq`, while this workspace is linked to `relaysmsnumber`. The key value was not inspected, and no live catalog request has been made. Decide which Vercel project is canonical for the preview before requesting or verifying live data. Also provide the target domain, refund and expiry/non-delivery policy, rental renewal/cancellation terms, SMS content retention limit, and policy approver. We can continue provider-neutral work until these are decided, but cannot honestly mark the service live.
 
 ## Deployment
 
